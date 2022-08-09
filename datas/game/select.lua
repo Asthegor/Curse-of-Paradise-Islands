@@ -11,7 +11,8 @@ local MainFont = "datas/font/TurretRoad.ttf"
 local MainFontSize = 25
 
 local MenuItemSound = {}
-
+local pressMenuButton = {}
+local music = {}
 -- Local functions
 local function LaunchGame(PlayerType)
   Dina:setGlobalValue("Player_Type", PlayerType)
@@ -31,12 +32,18 @@ local function OnDeselection(Item)
 end
 local function SelectExplorer()
   LaunchGame("Explorer")
+  music:stop()
+  pressMenuButton:play()
 end
 local function SelectBotanist()
   LaunchGame("Botanist")
+  music:stop()
+  pressMenuButton:play()
 end
 local function SelectSoldier()
   LaunchGame("Soldier")
+  music:stop()
+  pressMenuButton:play()
 end
 local function GetImagePosition(Item, Image)
   local itw, ith = Item:getDimensions()
@@ -106,11 +113,14 @@ function Select:load()
   DefineController[Dina:getGlobalValue("Controller")]()
   
   -- Music
-  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --music:play()
+  music = Dina("Sound", "datas/audio/music/characterSelect.mp3", "stream", 0.7, 0.7)
   
   -- Sounds
-  --MenuItemSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 0.3, 0.3)
+  MenuItemSound:setLooping(0)
+
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
+  pressMenuButton:setLooping(0)
 end
 
 function Select:update(dt)

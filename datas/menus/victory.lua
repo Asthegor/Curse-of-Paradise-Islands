@@ -1,4 +1,6 @@
 local Victory = {}
+local music = {}
+local pressMenuButton = {}
 
 -- Require
 local Dina = require("Dina")
@@ -26,8 +28,12 @@ function Victory:load()
   Dina:setActionKeys(Victory, "ToMenu", "pressed", controllerAction)
   
   -- Music
-  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --music:play()
+  local music = Dina("Sound", "datas/audio/music/victory.mp3", "stream", -1, 1)
+  music:play()
+
+  --Sound
+  pressMenuButton = Dina("Sound", "dats/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
+  pressMenuButton:SetLooping(0)
 end
 --
 function Victory:update(dt)
@@ -40,6 +46,7 @@ end
 --
 function Victory:ToMenu()
   Dina:setState("menu")
+  music:stop()
 end
 
 return Victory

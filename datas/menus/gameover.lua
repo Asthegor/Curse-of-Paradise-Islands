@@ -2,6 +2,8 @@ local GameOver = {}
 
 -- Require
 local Dina = require("Dina")
+local music = {}
+local pressMenuButton = {}
 
 -- Locale variables
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
@@ -18,8 +20,11 @@ function GameOver:load()
   Dina:setActionKeys(GameOver, "ToMenu", "pressed", controllerAction)
   
   -- Music
-  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --music:play()
+  music = Dina("Sound", "datas/audio/music/gameOver.mp3", "stream", 0.7, 0.7)
+  music:play()
+
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress", "stream", 0.3, 0.3)
+  pressMenuButton:setLooping(0)
 end
 --
 function GameOver:update(dt)
@@ -32,6 +37,8 @@ end
 --
 function GameOver:ToMenu()
   Dina:setState("menu")
+  music:stop()
+  pressMenuButton.play()
 end
 --
 return GameOver

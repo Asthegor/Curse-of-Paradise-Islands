@@ -8,6 +8,9 @@ local MenuManager = {}
 local MessageText = {}
 
 local MenuItemSound = {}
+local music = {}
+local pressMenuButton = {}
+local isMusicPlaying = false
 
 local ImageBoat = {}
 local speedBoat = 150
@@ -27,14 +30,21 @@ local function OnDeselection(Item)
 end
 local function LaunchGame()
   Dina:setState("selection")
+  pressMenuButton:play()
+  music:stop()
+  isMusicPlaying = false
+  
 end
 local function DisplayOptions()
   Dina:setState("options")
+  pressMenuButton:play()
 end
 local function DisplayCredits()
   Dina:setState("credits")
+  pressMenuButton:play()
 end
 local function Quit()
+  pressMenuButton:play()
   love.event.quit(0)
 end
 --
@@ -95,11 +105,17 @@ function Menu:load()
   end
   
   -- Music
-  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --music:play()
+  if isMusicPlaying == false then
+  music = Dina("Sound", "datas/audio/music/seaofWonder.mp3", "stream", -1, 1)
+  isMusicPlaying = true
+
+end
   
   --Sounds
-  --MenuItemSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 0.3, 0.3)
+  MenuItemSound:setLooping(0)
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
+  pressMenuButton:setLooping(0)
 end
 --
 

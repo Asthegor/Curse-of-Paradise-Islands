@@ -20,6 +20,7 @@ local MenuItemCtrlAction = {}
 local MenuItemCtrlPause = {}
 
 local MenuItemSound = {}
+local pressMenuButton = {}
 
 -- Local functions
 local function OnSelection(Item)
@@ -134,6 +135,7 @@ local function ChangePause()
 end
 local function ReturnToMenu()
   Dina:setState("menu")
+  pressMenuButton:play()
 end
 --
 
@@ -221,7 +223,12 @@ function Options:load()
   --music:play()
   
   -- Sounds
-  --MenuItemSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightup3.mp3", "static", 0.3, 0.3)
+  MenuItemSound:setLooping(0)
+
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
+  pressMenuButton:setLooping(0)
+
 end
 --
 
