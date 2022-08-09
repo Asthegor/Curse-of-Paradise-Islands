@@ -22,11 +22,11 @@ local function LaunchGame(PlayerType)
   end
 end
 local function OnSelection(Item)
-  if MenuItemSound then MenuItemSound:play() end
+  if next(MenuItemSound) then MenuItemSound:play() end
   Item:setTextColor(Colors.LIME)
 end
 local function OnDeselection(Item)
-  if MenuItemSound then MenuItemSound:stop() end
+  if next(MenuItemSound) then MenuItemSound:stop() end
   Item:setTextColor(Colors.WHITE)
 end
 local function SelectExplorer()

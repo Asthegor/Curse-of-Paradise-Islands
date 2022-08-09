@@ -10,6 +10,8 @@ local Player = require("datas/game/player")
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
 local MainFontSize = 20
 
+local LevelManager = {}
+
 local pauseGame = false
 local PauseBtn = {}
 
@@ -17,8 +19,6 @@ local FoodProgressBar = {}
 local FoodQuantity = {}
 local Compass = {}
 
-local LevelManager = {}
---
 local BIOME_MER = 1
 local BIOME_SABLE = 2
 local BIOME_JUNGLE = 3
@@ -30,6 +30,12 @@ local MIDHEIGHT = Dina.height / 2
 
 local camera = {x = 0, y = 0}
 
+local SailingMusic = {}
+local LandMusic = {}
+local PauseSound = {}
+
+
+-- local functions
 local function LoadActionKeys()
   Dina:resetActionKeys()
   local controller = Dina:getGlobalValue("Controller")
@@ -58,8 +64,6 @@ local function LoadActionKeys()
   Dina:setActionKeys(Game, "pause", "pressed", Dina:getGlobalValue("Controller_Pause"))
 end
 local function LoadUserInterface()
---  local foodEmpty = Dina("Image", "datas/images/games/barrel02.png", 10, 10)
---  local foodFull = Dina("Image", "datas/images/games/barrel01.png", 10, 10)
   FoodProgressBar = Dina("ProgressBar", 10, 10, 64, 97, 100, 100)
   local imgBack = love.graphics.newImage("datas/images/game/barrel02.png")
   local imgFront = love.graphics.newImage("datas/images/game/barrel01.png")
@@ -93,14 +97,23 @@ function Game:load()
 
   local x, y = Player:getPosition()
   Player:setPosition(x, y)
-  -- Camera
+
   Game:updateCamera()
+
+  -- Music
+  --SailingMusic = Dina("Sound", "datas/musics/", "stream", -1, 1)
+  --LandMusic = Dina("Sound", "datas/musics/", "stream", -1, 1)
+  --SailingMusic:play()
+
+  -- Sounds
+  --PauseSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
 end
 --
 
 function Game:pause()
   pauseGame = not pauseGame
   if pauseGame then
+    if next(PauseSound) then PauseSound:play() end
     PauseBtn = Dina("Button", Dina.width/4, (Dina.height - Dina.width/4)/2, MIDWIDTH, Dina.width/4, "PAUSE", MainFont, 60, Colors.PURPLE, Colors.GRAY)
     PauseBtn:setThickness(4)
     PauseBtn:setBorderColor(Colors.YELLOW)
@@ -128,19 +141,11 @@ function Game:update(dt)
   local ids = LevelManager:getTileIdsAtCoord(px, py)
   -- Only one id at a given coordinate
   if not Player.onboard then
-    if ids[1] == BIOME_MER then
-      if Player:isInShip() then
-        if string.lower(Player:getTypeChar()) == "botanist" then
-          Player:setOnBoard(self:hasExploreIsland())
-        else
-          Player:setOnBoard(true)
-        end
-      end
+    if ids[1] == BIOME_MER and Player:isInShip() then
+      Player:setOnBoard(true)
     end
-  elseif Player.onboard then
-    if ids[1] > BIOME_MER then
-      Player:setOnBoard(false)
-    end
+  elseif Player.onboard and ids[1] > BIOME_MER then
+    Player:setOnBoard(false)
   end
 
   -- Collision with Detectors
@@ -228,10 +233,16 @@ function Game:update(dt)
   end
 
   -- Go to next island
-  local pw, ph = Player:getDimensions()
-  if px < pw*2 or px > lw - pw*2 or py < ph*2 or py > lh - ph*2 then
+  local generate = true
+  if string.lower(Player:getTypeChar()) == "botanist" then
+    generate = self:hasExploreIsland()
+  end
+  if generate then
+    local pw, ph = Player:getDimensions()
+    if px < pw*2 or px > lw - pw*2 or py < ph*2 or py > lh - ph*2 then
 
-    self:generateIsland()
+      self:generateIsland()
+    end
     local nlw, nlh = LevelManager:getMapDimensions()
 
     local npx, npy
@@ -252,6 +263,8 @@ function Game:update(dt)
     Player:setPosition(npx, npy)
     Game:updateCamera()
   end
+  
+  --Player:update(dt)
 end
 --
 function Game:hasExploreIsland()
@@ -305,6 +318,7 @@ end
 function Game:draw()
   LevelManager:setOffset(camera.x, camera.y)
   Dina:draw(false)
+  --Player:draw()
 end
 
 
