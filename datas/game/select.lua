@@ -1,12 +1,18 @@
 local Select = {}
 
+-- Require
 local Dina = require("Dina")
+
+-- Local variables
 local SelectionMenu = {}
 local MessageText = {}
 
 local MainFont = "datas/font/TurretRoad.ttf"
 local MainFontSize = 25
 
+local MenuItemSound = {}
+
+-- Local functions
 local function LaunchGame(PlayerType)
   Dina:setGlobalValue("Player_Type", PlayerType)
   if Dina:getGlobalValue("Skip_Intro") then
@@ -16,9 +22,11 @@ local function LaunchGame(PlayerType)
   end
 end
 local function OnSelection(Item)
+  if MenuItemSound then MenuItemSound:play() end
   Item:setTextColor(Colors.LIME)
 end
 local function OnDeselection(Item)
+  if MenuItemSound then MenuItemSound:stop() end
   Item:setTextColor(Colors.WHITE)
 end
 local function SelectExplorer()
@@ -43,31 +51,22 @@ end
 local DefineController = {}
 function DefineController:Gamepad()
   Dina:resetActionKeys()
-  
-  Dina:setGlobalValue("Controller", "Gamepad")
-  
   if not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Gamepad", "leftx", -1}) end
   SelectionMenu:setPreviousKeys( Dina:getGlobalValue("Controller_Left") )
-  
   if not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Gamepad", "leftx", 1}) end
   SelectionMenu:setNextKeys( Dina:getGlobalValue("Controller_Right") )
-  
   if not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Gamepad", "a" }) end
   SelectionMenu:setValidateKeys( Dina:getGlobalValue("Controller_Action") )
 end
 function DefineController:Keyboard()
   if not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Keyboard", "left"}) end
   SelectionMenu:setPreviousKeys( Dina:getGlobalValue("Controller_Left") )
-  
   if not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Keyboard", "right"}) end
   SelectionMenu:setNextKeys( Dina:getGlobalValue("Controller_Right") )
-  
   if not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Keyboard", "return" }) end
   SelectionMenu:setValidateKeys( Dina:getGlobalValue("Controller_Action") )
 end
-
-
-
+--
 
 
 function Select:load()
@@ -101,19 +100,25 @@ function Select:load()
   local mx, my, mw, mh = SelectionMenu:getItemsDimensions()
   local ty = Dina.height - (Dina.height - my - mh) * 3/4
 
-  MessageText = Dina("Text", "Press '".. Dina:getGlobalValue("Controller_Action")[2] .."' to launch the game.", 0, ty, Dina.width, nil, Colors.WHITE, "datas/font/SairaStencilOne-Regular.ttf", 20, "center", "center", nil, 1, 3)
+  local msg = "Press '".. Dina:getGlobalValue("Controller_Action")[2] .."' to launch the game."
+  MessageText = Dina("Text", msg, 0, ty, Dina.width, nil, Colors.WHITE, "datas/font/SairaStencilOne-Regular.ttf", 20, "center", "center", nil, 1, 3)
   
   DefineController[Dina:getGlobalValue("Controller")]()
+  
+  -- Music
+  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
+  --music:play()
+  
+  -- Sounds
+  --MenuItemSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
 end
 
 function Select:update(dt)
   Dina:update(dt, false)
 end
-
-
+--
 function Select:draw()
   Dina:draw(false)
 end
-
-
+--
 return Select

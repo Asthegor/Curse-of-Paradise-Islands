@@ -4,10 +4,11 @@ local Options = {}
 local Dina = require("Dina")
 
 -- Locale variables
-local MenuManager = {}
-local ValueManager = {}
 local MainFont = "datas/font/TurretRoad.ttf"
 local MainFontSize = 25
+
+local MenuManager = {}
+local ValueManager = {}
 
 local ButtonChange = {}
 local MenuItemCtrl = {}
@@ -18,13 +19,17 @@ local MenuItemCtrlRight = {}
 local MenuItemCtrlAction = {}
 local MenuItemCtrlPause = {}
 
+local MenuItemSound = {}
+
+-- Local functions
 local function OnSelection(Item)
+  if MenuItemSound then MenuItemSound:play() end
   Item:setTextColor(Colors.LIME)
 end
 local function OnDeselection(Item)
+  if MenuItemSound then MenuItemSound:stop() end
   Item:setTextColor(Colors.WHITE)
 end
---
 local function RefreshMenuItems()
   local itemName = Dina:getGlobalValue("Controller")
   MenuItemCtrl:setContent(itemName)
@@ -42,36 +47,6 @@ local function RefreshMenuItems()
   MenuItemCtrlPause:setContent(itemName[2])
   local vw, vh = ValueManager:getItemsDimensions()
   ValueManager:setItemsDimensions(Dina.width * 2/5, vh, "vertical", true)
-end
-
-local DefineController = {}
-function DefineController.Gamepad(self, ForceChange)
-  if ForceChange or not Dina:getGlobalValue("Controller") then Dina:setGlobalValue("Controller", "Gamepad") end
-  if ForceChange or not Dina:getGlobalValue("Controller_Up") then Dina:setGlobalValue("Controller_Up", {"Gamepad", "lefty", -1}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Down") then Dina:setGlobalValue("Controller_Down", {"Gamepad", "lefty", 1}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Gamepad", "leftx", -1}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Gamepad", "leftx", 1}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Gamepad", "a" }) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Pause") then Dina:setGlobalValue("Controller_Pause", { "Gamepad", "start" }) end
-  self:SetMenuKeys()
-  if ForceChange then RefreshMenuItems() end
-end
-function DefineController.Keyboard(self, ForceChange)
-  if ForceChange or not Dina:getGlobalValue("Controller") then Dina:setGlobalValue("Controller", "Keyboard") end
-  if ForceChange or not Dina:getGlobalValue("Controller_Up") then Dina:setGlobalValue("Controller_Up", {"Keyboard", "up"}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Down") then Dina:setGlobalValue("Controller_Down", {"Keyboard", "down"}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Keyboard", "left"}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Keyboard", "right"}) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Keyboard", "return" }) end
-  if ForceChange or not Dina:getGlobalValue("Controller_Pause") then Dina:setGlobalValue("Controller_Pause", { "Keyboard", "backspace" }) end
-  self:SetMenuKeys()
-  if ForceChange then RefreshMenuItems() end
-end
-function DefineController:SetMenuKeys()
-  Dina:resetActionKeys()
-  MenuManager:setPreviousKeys( Dina:getGlobalValue("Controller_Up") )
-  MenuManager:setNextKeys( Dina:getGlobalValue("Controller_Down") )
-  MenuManager:setValidateKeys( Dina:getGlobalValue("Controller_Action") )
 end
 --
 
@@ -103,10 +78,8 @@ function ChangeKey:SetMenuKeys(Item, KeyBtn, Dir)
       Dina:setGlobalValue("Controller_"..Item, { controller, KeyBtn })
     end
   end
-  DefineController[controller](DefineController)
-  -- update menu item content
+  DefineController[controller](DefineController, MenuManager)
   RefreshMenuItems()
-  -- Remove button
   Dina:removeComponent(ButtonChange)
 end
 function ChangeKey:DisplayMsg(KeyName)
@@ -116,16 +89,17 @@ function ChangeKey:DisplayMsg(KeyName)
   elseif string.lower(Dina:getGlobalValue("Controller")) == "keyboard" then
     msg = "Press a key to set the " .. KeyName .. " key."
   end
-  ButtonChange = Dina("Button", (Dina.width - Dina.width/4) / 2, (Dina.height - Dina.height/4) / 2, Dina.width/4, Dina.height/4, msg, MainFont, MainFontSize, Colors.WHITE, Colors.GRAY, 10)
-  
+  local x = (Dina.width - Dina.width/4) / 2
+  local y = (Dina.height - Dina.height/4) / 2
+  ButtonChange = Dina("Button", x, y, Dina.width/4, Dina.height/4, msg, MainFont, MainFontSize, Colors.WHITE, Colors.GRAY, 10)
 end
 local function ChangeController()
   if string.lower(Dina:getGlobalValue("Controller")) == "keyboard" then
     Dina:setGlobalValue("Controller", "Gamepad")
-    DefineController:Gamepad(true)
+    DefineController:Gamepad(MenuManager, true, RefreshMenuItems)
   elseif string.lower(Dina:getGlobalValue("Controller")) == "gamepad" then
     Dina:setGlobalValue("Controller", "Keyboard")
-    DefineController:Keyboard(true)
+    DefineController:Keyboard(MenuManager, true, RefreshMenuItems)
   end
 end
 local function ChangeUp()
@@ -163,6 +137,36 @@ local function ReturnToMenu()
 end
 --
 
+local DefineController = {}
+function DefineController.Gamepad(self, MenuManager, ForceChange, UpdateFunction)
+  if ForceChange or not Dina:getGlobalValue("Controller") then Dina:setGlobalValue("Controller", "Gamepad") end
+  if ForceChange or not Dina:getGlobalValue("Controller_Up") then Dina:setGlobalValue("Controller_Up", {"Gamepad", "lefty", -1}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Down") then Dina:setGlobalValue("Controller_Down", {"Gamepad", "lefty", 1}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Gamepad", "leftx", -1}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Gamepad", "leftx", 1}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Gamepad", "a" }) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Pause") then Dina:setGlobalValue("Controller_Pause", { "Gamepad", "start" }) end
+  self:SetMenuKeys(MenuManager)
+  if ForceChange then UpdateFunction() end
+end
+function DefineController.Keyboard(self, MenuManager, ForceChange, UpdateFunction)
+  if ForceChange or not Dina:getGlobalValue("Controller") then Dina:setGlobalValue("Controller", "Keyboard") end
+  if ForceChange or not Dina:getGlobalValue("Controller_Up") then Dina:setGlobalValue("Controller_Up", {"Keyboard", "up"}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Down") then Dina:setGlobalValue("Controller_Down", {"Keyboard", "down"}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Keyboard", "left"}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Right") then Dina:setGlobalValue("Controller_Right", {"Keyboard", "right"}) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Action") then Dina:setGlobalValue("Controller_Action", { "Keyboard", "return" }) end
+  if ForceChange or not Dina:getGlobalValue("Controller_Pause") then Dina:setGlobalValue("Controller_Pause", { "Keyboard", "backspace" }) end
+  self:SetMenuKeys(MenuManager)
+  if ForceChange then UpdateFunction() end
+end
+function DefineController.SetMenuKeys(self, MenuManager)
+  Dina:resetActionKeys()
+  MenuManager:setPreviousKeys( Dina:getGlobalValue("Controller_Up") )
+  MenuManager:setNextKeys( Dina:getGlobalValue("Controller_Down") )
+  MenuManager:setValidateKeys( Dina:getGlobalValue("Controller_Action") )
+end
+--
 
 function Options:load()
   local offsetMenuItems = 75
@@ -171,8 +175,9 @@ function Options:load()
   ValueManager = Dina("MenuManager")
 
   local controller = Dina:getGlobalValue("Controller")
-  DefineController[controller](DefineController)
+  DefineController[controller](DefineController, MenuManager)
 
+  -- Selection menu
   MenuManager:addTitle("Options", 50, "datas/font/SairaStencilOne-Regular.ttf", 70, Colors.ORANGE, true, Colors.ORANGERED, 2, 2)
   MenuManager:addTitle("WARNING! All changes are applied immediatly", 170, MainFont, MainFontSize, Colors.RED)
   MenuManager:addTitle("Move up and down to select an item and press the Action key to change it.", 220, MainFont, MainFontSize - 5, Colors.WHITE)
@@ -191,27 +196,34 @@ function Options:load()
   backItem:setPosition(bx, by)
 
 
+  -- Keys or buttons/axes for the controller
   ValueManager:setCtrlSpace(10)
   MenuItemCtrl = ValueManager:addItem(controller, MainFont, MainFontSize)
   local itemName = Dina:getGlobalValue("Controller_Up")
-  MenuItemCtrlUp = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlUp = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
   itemName = Dina:getGlobalValue("Controller_Down")
-  MenuItemCtrlDown = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlDown = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
   itemName = Dina:getGlobalValue("Controller_Left")
-  MenuItemCtrlLeft = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlLeft = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
   itemName = Dina:getGlobalValue("Controller_Right")
-  MenuItemCtrlRight = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlRight = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
   itemName = Dina:getGlobalValue("Controller_Action")
-  MenuItemCtrlAction = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlAction = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
   itemName = Dina:getGlobalValue("Controller_Pause")
-  MenuItemCtrlPause = ValueManager:addItem(itemName[2] .. (itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
+  MenuItemCtrlPause = ValueManager:addItem(itemName[2] .. (string.lower(controller) == "gamepad" and itemName[3] and " "..itemName[3] or ""), MainFont, MainFontSize)
 
   ValueManager:setItemsPosition(Dina.width * 3/5, offsetMenuItems + (Dina.height - mh) / 2)
   local vw, vh = ValueManager:getItemsDimensions()
   ValueManager:setItemsDimensions(Dina.width * 2/5, vh, "vertical", true)
-
-
+  
+  -- Music
+  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
+  --music:play()
+  
+  -- Sounds
+  --MenuItemSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
 end
+--
 
 function Options:update(dt)
   Dina:update(dt, false)

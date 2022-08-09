@@ -22,7 +22,6 @@ function love.load()
   Dina:setGlobalValue("Skip_Intro", true)
 
   Dina:setState("logowg")
---  Dina:setState("game")
 end
 --
 function love.update(dt)
