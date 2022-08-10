@@ -15,6 +15,8 @@ local BIOME_MONTAGNE = 5
 local MIDWIDTH = Dina.width / 2
 local MIDHEIGHT = Dina.height / 2
 
+local PI = 355/113
+
 -- Locale variables
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
 local MainFontSize = 20
