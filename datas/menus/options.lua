@@ -3,9 +3,14 @@ local Options = {}
 -- Require
 local Dina = require("Dina")
 
--- Locale variables
+-- Constantes
 local MainFont = "datas/font/TurretRoad.ttf"
 local MainFontSize = 25
+
+
+-- Locale variables
+local DefineController = {}
+local ChangeKey = {}
 
 local MenuManager = {}
 local ValueManager = {}
@@ -21,6 +26,7 @@ local MenuItemCtrlPause = {}
 
 local MenuItemSound = {}
 local pressMenuButton = {}
+
 
 -- Local functions
 local function OnSelection(Item)
@@ -51,7 +57,7 @@ local function RefreshMenuItems()
 end
 --
 
-local ChangeKey = {}
+
 function ChangeKey:Up(dir, dt, keybtn)
   self:SetMenuKeys("Up", keybtn, dir)
 end
@@ -134,12 +140,11 @@ local function ChangePause()
   ChangeKey:DisplayMsg("Pause")
 end
 local function ReturnToMenu()
-  Dina:setState("menu")
   pressMenuButton:play()
+  Dina:setState("menu")
 end
 --
 
-local DefineController = {}
 function DefineController.Gamepad(self, MenuManager, ForceChange, UpdateFunction)
   if ForceChange or not Dina:getGlobalValue("Controller") then Dina:setGlobalValue("Controller", "Gamepad") end
   if ForceChange or not Dina:getGlobalValue("Controller_Up") then Dina:setGlobalValue("Controller_Up", {"Gamepad", "lefty", -1}) end
@@ -218,17 +223,9 @@ function Options:load()
   local vw, vh = ValueManager:getItemsDimensions()
   ValueManager:setItemsDimensions(Dina.width * 2/5, vh, "vertical", true)
   
-  -- Music
-  --local music = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --music:play()
-  
   -- Sounds
-  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightup3.mp3", "static", 0.3, 0.3)
-  MenuItemSound:setLooping(0)
-
-  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
-  pressMenuButton:setLooping(0)
-
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightup3.mp3", "static", 1, 0.3)
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 1, 0.3)
 end
 --
 

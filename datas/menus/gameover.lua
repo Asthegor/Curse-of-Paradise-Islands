@@ -2,11 +2,13 @@ local GameOver = {}
 
 -- Require
 local Dina = require("Dina")
-local music = {}
-local pressMenuButton = {}
+
+-- Constantes
+local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
 
 -- Locale variables
-local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
+local music = {}
+local pressMenuButton = {}
 
 function GameOver:load()
   local title = Dina("Text", "Game Over", 0, 0, nil, nil, Colors.WHITE, MainFont, 80)
@@ -23,8 +25,7 @@ function GameOver:load()
   music = Dina("Sound", "datas/audio/music/gameOver.mp3", "stream", 0.7, 0.7)
   music:play()
 
-  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress", "stream", 0.3, 0.3)
-  pressMenuButton:setLooping(0)
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress", "stream", 1, 0.3)
 end
 --
 function GameOver:update(dt)
@@ -36,9 +37,9 @@ function GameOver:draw()
 end
 --
 function GameOver:ToMenu()
-  Dina:setState("menu")
   music:stop()
   pressMenuButton.play()
+  Dina:setState("menu")
 end
 --
 return GameOver

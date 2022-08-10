@@ -1,12 +1,15 @@
 local Victory = {}
-local music = {}
-local pressMenuButton = {}
 
 -- Require
 local Dina = require("Dina")
 
 -- Locale variables
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
+local music = {}
+local pressMenuButton = {}
+
+
+
 
 function Victory:load()
   -- Title
@@ -32,8 +35,7 @@ function Victory:load()
   music:play()
 
   --Sound
-  pressMenuButton = Dina("Sound", "dats/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
-  pressMenuButton:SetLooping(0)
+  pressMenuButton = Dina("Sound", "dats/audio/soundeffects/menuButtonPress.mp3", "static", 1, 0.3)
 end
 --
 function Victory:update(dt)
@@ -45,8 +47,8 @@ function Victory:draw()
 end
 --
 function Victory:ToMenu()
-  Dina:setState("menu")
   music:stop()
+  Dina:setState("menu")
 end
 
 return Victory

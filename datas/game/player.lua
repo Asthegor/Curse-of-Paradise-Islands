@@ -19,6 +19,7 @@ local landExplorationMusic = {}
 local isSeaMusicPlaying = false
 local isLandMusicPlaying = false
 
+
 function Player:load(LManager, Reload)
   LevelManager = LManager
   self.mapwidth, self.mapheight = LevelManager:getMapDimensions()
@@ -29,7 +30,7 @@ function Player:load(LManager, Reload)
   self.char.visible = false
   self.ship.visible = true
   self.compass = Dina:getGlobalValue("Game_Compass")
-  
+
   -- Player type
   self.typechar = Dina:getGlobalValue("Player_Type")
   if not self.typechar then
@@ -44,10 +45,10 @@ function Player:load(LManager, Reload)
     self.firstimgid = 30
   end
   LevelManager:setImageId(self.char, self.firstimgid + 1)
-  
+
   self:setOnBoard(true)
   self:addFood(20, false)
-  
+
   -- First position
   if not Reload then
     local x = love.math.random(self.ship.width * 2, self.mapwidth - self.ship.width * 2)
@@ -58,57 +59,37 @@ function Player:load(LManager, Reload)
     end
     self:setPosition(x,y)
   end
-  
+
   -- Sounds
-  BoardingSound = Dina("Sound", "datas/audio/soundeffects/shipEnter.mp3", "static", 0.8, 0.8)
-  BoardingSound:setLooping(0)
+  BoardingSound = Dina("Sound", "datas/audio/soundeffects/shipEnter.mp3", "static", 1, 0.8)
   LandingSound = Dina("Sound", "datas/audio/soundeffects/shipExit.mp3", "static", 1, 1)
-  LandingSound:setLooping(0)
-  AddingFoodSound = Dina("Sound", "datas/audio/soundeffects/collectFood1.mp3", "static", 0.2, 0.2)
-  AddingFoodSound:setLooping(0)
+  AddingFoodSound = Dina("Sound", "datas/audio/soundeffects/collectFood1.mp3", "static", 1, 0.2)
   --PoisonedSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
   EatingSound = Dina("Sound", "datas/audio/soundeffects/eatfood1.mp3", "static", 1, 1)
-  EatingSound:setLooping(0)
-  SailingSound = Dina("Sound", "datas/audio/soundeffects/shipMove.mp3", "static", 0.1, 0.1)
-  SailingSound:setLooping(0)
- 
+  SailingSound = Dina("Sound", "datas/audio/soundeffects/shipMove2.mp3", "static", 1, 1)
   --WalkingSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
-if isSeaMusicPlaying == false then
-  seaExplorationMusic = Dina("Sound", "datas/audio/music/seaExploration.mp3", "stream", 0.3, 0.3)
-  seaExplorationMusic:setLooping(0)
-  seaExplorationMusic:play()
-  isSeaMusicPlaying = true
-end
-  landExplorationMusic = Dina("Sound", "datas/audio/music/islandExploration.mp3", "stream", 0.3,0.3)
-  landExplorationMusic:setLooping(0)
+  
+  if isSeaMusicPlaying == false then
+    seaExplorationMusic = Dina("Sound", "datas/audio/music/seaExploration.mp3", "stream", 1, 0.3)
+    seaExplorationMusic:play()
+    isSeaMusicPlaying = true
+  end
+  landExplorationMusic = Dina("Sound", "datas/audio/music/islandExploration.mp3", "stream", 1,0.3)
 end
 --
 
 -- Player movements
 function Player:PlayMoveSounds()
   if self.onboard then
-   --if not SailingSound:isPlaying() then
-   --SailingSound:play()
-   --SailingSound:setLooping(-1)
---end
- -- else
+    if not SailingSound:isPlaying() then
+      SailingSound:play()
+    end
+  else
 --    if not WalkingSound:isPlaying() then
 --      WalkingSound:play()
+--    end
+  end
 end
-  end
-  function Player:StopMovementSound()
-    if self.onboard then
-   --   if SailingSound:isPlaying() then
-     --   SailingSound:stop()
-     -- else
-        -- if WalkingSound:isPlaying() then
-        -- WalkingSound:stop()
-
-    --  end
-      
-    end
-    
-  end
 function Player:checkMovement(X, Y)
   local move = false
   local ids = LevelManager:getTileIdsAtCoord(X, Y)
@@ -135,7 +116,7 @@ function Player:left(dir, dt)
     x = x - self.speed * dt
     self:setPosition(x, y)
   end
-  self.moveleft = true
+  self.moving = true
 end
 function Player:right(dir, dt)
   self:PlayMoveSounds()
@@ -147,7 +128,7 @@ function Player:right(dir, dt)
     x = x + self.speed * dt
     self:setPosition(x, y)
   end
-  self.moveright = true
+  self.moving = true
 end
 function Player:up(dir, dt)
   self:PlayMoveSounds()
@@ -159,7 +140,7 @@ function Player:up(dir, dt)
     y = y - self.speed * dt
     self:setPosition(x, y)
   end
-  self.moveup = true
+  self.moving = true
 end
 function Player:down(dir, dt)
   self:PlayMoveSounds()
@@ -171,7 +152,7 @@ function Player:down(dir, dt)
     y = y + self.speed * dt
     self:setPosition(x, y)
   end
-  self.movedown = true
+  self.moving = true
 end
 --
 
@@ -209,14 +190,14 @@ function Player:setOnBoard(Value)
   if Value and not self.onboard then
     if next(LandingSound) then LandingSound:stop() end
     if next(BoardingSound) then BoardingSound:play() end
-
-    if isLandMusicPlaying == true then
-    isLandMusicPlaying = false
-    landExplorationMusic:stop()
-    seaExplorationMusic:play()
-    isSeaMusicPlaying = true
+  
+    if isLandMusicPlaying then
+      isLandMusicPlaying = false
+      landExplorationMusic:stop()
+      seaExplorationMusic:play()
+      isSeaMusicPlaying = true
     end
- 
+
     self.onboard = true
     self.speed = 75
     if string.lower(self.typechar) == "explorer" then
@@ -228,15 +209,15 @@ function Player:setOnBoard(Value)
   elseif not Value and self.onboard then
     if next(BoardingSound) then BoardingSound:stop() end
     if next(LandingSound) then LandingSound:play() end
+    
+    if isSeaMusicPlaying then
+      isSeaMusicPlaying = false
+      seaExplorationMusic:stop()
+      landExplorationMusic:play()
+      isLandMusicPlaying = true
+    end
 
-    if isSeaMusicPlaying == true then
-    isSeaMusicPlaying = false
-    seaExplorationMusic:stop()
-    landExplorationMusic:play()
-    isLandMusicPlaying = true
-  end
-  
-   
+
     self.onboard = false
     self.speed = 75
     if string.lower(self.typechar) == "botanist" then
@@ -287,44 +268,14 @@ end
 --
 
 function Player:update(dt)
-  self.moveleft = false
-  self.moveright = false
-  self.moveup = false
-  self.movedown = false
+  if SailingSound then
+    if not self.moving and SailingSound:isPlaying() then
+      SailingSound:stop()
+    end
+  end
+  self.moving = false
 end
-local MIDWIDTH = Dina.width/2
-local MIDHEIGHT = Dina.height/2
 function Player:draw()
-  local x, y = self:getPosition()
-  local w, h = self:getDimensions()
-  local lw, lh = LevelManager:getMapDimensions()
-  if x > lw - MIDWIDTH then
-    x = Dina.width - (lw - x)
-  elseif x >= MIDWIDTH then
-    x = MIDWIDTH
-  end
-  if y > lh - MIDHEIGHT then
-    y = Dina.height - (lh - y)
-  elseif y >= MIDHEIGHT then
-    y = MIDHEIGHT
-  end
-  local xmove = x
-  local ymove = y
-  if self.moveleft then
-    xmove = xmove - w/2
-  elseif self.moveright then
-    xmove = xmove + w/2
-  end
-  if self.moveup then
-    ymove = ymove - h/2
-  elseif self.movedown then
-    ymove = ymove + h/2
-  end
-  love.graphics.setColor(0,1,0)
-  love.graphics.circle("fill", x, y, 3)
-  love.graphics.setColor(1,0,0)
-  love.graphics.circle("fill", xmove, ymove, 3)
-  love.graphics.setColor(1,1,1)
 end
 --
 

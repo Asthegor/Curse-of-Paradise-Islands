@@ -17,10 +17,11 @@ local MIDHEIGHT = Dina.height / 2
 
 local PI = 355/113
 
--- Locale variables
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
 local MainFontSize = 20
 
+
+-- Locale variables
 local LevelManager = {}
 
 local pauseGame = false
@@ -37,11 +38,6 @@ local arrowAngle = -1
 local speedArrowMove = 80
 
 local camera = {x = 0, y = 0}
-
-local SailingMusic = {}
-local LandMusic = {}
-local PauseSound = {}
-
 
 -- local functions
 local function LoadActionKeys()
@@ -114,21 +110,12 @@ function Game:load()
   Player:setPosition(x, y)
 
   Game:updateCamera()
-
-  -- Music
-  --SailingMusic = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --LandMusic = Dina("Sound", "datas/musics/", "stream", -1, 1)
-  --SailingMusic:play()
-
-  -- Sounds
-  --PauseSound = Dina("Sound", "datas/sounds/", "static", 1, 1)
 end
 --
 
 function Game:pause()
   pauseGame = not pauseGame
   if pauseGame then
-    if next(PauseSound) then PauseSound:play() end
     PauseBtn = Dina("Button", Dina.width/4, (Dina.height - Dina.width/4)/2, MIDWIDTH, Dina.width/4, "PAUSE", MainFont, 60, Colors.PURPLE, Colors.GRAY)
     PauseBtn:setThickness(4)
     PauseBtn:setBorderColor(Colors.YELLOW)
@@ -307,6 +294,8 @@ function Game:update(dt)
     Player:setPosition(npx, npy)
     Game:updateCamera()
   end
+  
+  Player:update(dt)
 end
 --
 function Game:hasExploreIsland()

@@ -3,18 +3,24 @@ local Select = {}
 -- Require
 local Dina = require("Dina")
 
--- Local variables
-local SelectionMenu = {}
-local MessageText = {}
-
+-- Constantes
 local MainFont = "datas/font/TurretRoad.ttf"
 local MainFontSize = 25
+
+-- Local variables
+local DefineController = {}
+
+local SelectionMenu = {}
+local MessageText = {}
 
 local MenuItemSound = {}
 local pressMenuButton = {}
 local music = {}
+
 -- Local functions
 local function LaunchGame(PlayerType)
+  music:stop()
+  pressMenuButton:play()
   Dina:setGlobalValue("Player_Type", PlayerType)
   if Dina:getGlobalValue("Skip_Intro") then
     Dina:setState("game")
@@ -32,18 +38,12 @@ local function OnDeselection(Item)
 end
 local function SelectExplorer()
   LaunchGame("Explorer")
-  music:stop()
-  pressMenuButton:play()
 end
 local function SelectBotanist()
   LaunchGame("Botanist")
-  music:stop()
-  pressMenuButton:play()
 end
 local function SelectSoldier()
   LaunchGame("Soldier")
-  music:stop()
-  pressMenuButton:play()
 end
 local function GetImagePosition(Item, Image)
   local itw, ith = Item:getDimensions()
@@ -55,7 +55,7 @@ local function GetImagePosition(Item, Image)
   return x, y
 end
 --
-local DefineController = {}
+
 function DefineController:Gamepad()
   Dina:resetActionKeys()
   if not Dina:getGlobalValue("Controller_Left") then Dina:setGlobalValue("Controller_Left", {"Gamepad", "leftx", -1}) end
@@ -113,14 +113,12 @@ function Select:load()
   DefineController[Dina:getGlobalValue("Controller")]()
   
   -- Music
-  music = Dina("Sound", "datas/audio/music/characterSelect.mp3", "stream", 0.7, 0.7)
+  music = Dina("Sound", "datas/audio/music/characterSelect.mp3", "stream", -1, 0.7)
+  music:play()
   
   -- Sounds
-  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 0.3, 0.3)
-  MenuItemSound:setLooping(0)
-
-  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
-  pressMenuButton:setLooping(0)
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 1, 0.3)
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 1, 0.3)
 end
 
 function Select:update(dt)

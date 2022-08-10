@@ -29,19 +29,18 @@ local function OnDeselection(Item)
   Item:setTextColor(Colors.WHITE)
 end
 local function LaunchGame()
-  Dina:setState("selection")
   pressMenuButton:play()
   music:stop()
   isMusicPlaying = false
-  
+  Dina:setState("selection")
 end
 local function DisplayOptions()
-  Dina:setState("options")
   pressMenuButton:play()
+  Dina:setState("options")
 end
 local function DisplayCredits()
-  Dina:setState("credits")
   pressMenuButton:play()
+  Dina:setState("credits")
 end
 local function Quit()
   pressMenuButton:play()
@@ -107,17 +106,14 @@ function Menu:load()
   end
   
   -- Music
-  if isMusicPlaying == false then
-  music = Dina("Sound", "datas/audio/music/seaofWonder.mp3", "stream", -1, 1)
-  isMusicPlaying = true
-
-end
+  if not isMusicPlaying then
+    music = Dina("Sound", "datas/audio/music/seaofWonder.mp3", "stream", -1, 1)
+    isMusicPlaying = true
+  end
   
   --Sounds
-  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 0.3, 0.3)
-  MenuItemSound:setLooping(0)
-  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 0.3, 0.3)
-  pressMenuButton:setLooping(0)
+  MenuItemSound = Dina("Sound", "datas/audio/soundeffects/menuLightUp3.mp3", "static", 1, 0.3)
+  pressMenuButton = Dina("Sound", "datas/audio/soundeffects/menuButtonPress.mp3", "static", 1, 0.3)
 end
 --
 
