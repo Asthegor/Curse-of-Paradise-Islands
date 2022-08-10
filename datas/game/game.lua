@@ -5,6 +5,15 @@ local Dina = require("Dina")
 local Map = require("datas/game/map")
 local Player = require("datas/game/player")
 
+-- Constantes
+local BIOME_MER = 1
+local BIOME_SABLE = 2
+local BIOME_JUNGLE = 3
+local BIOME_FORET = 4
+local BIOME_MONTAGNE = 5
+
+local MIDWIDTH = Dina.width / 2
+local MIDHEIGHT = Dina.height / 2
 
 -- Locale variables
 local MainFont = "datas/font/SairaStencilOne-Regular.ttf"
@@ -17,16 +26,13 @@ local PauseBtn = {}
 
 local FoodProgressBar = {}
 local FoodQuantity = {}
-local Compass = {}
+local CompassUI = {}
 
-local BIOME_MER = 1
-local BIOME_SABLE = 2
-local BIOME_JUNGLE = 3
-local BIOME_FORET = 4
-local BIOME_MONTAGNE = 5
-
-local MIDWIDTH = Dina.width / 2
-local MIDHEIGHT = Dina.height / 2
+local showCompass = false
+local CompassImg = {}
+local ArrowImg = {}
+local arrowAngle = -1
+local speedArrowMove = 80
 
 local camera = {x = 0, y = 0}
 
@@ -61,6 +67,7 @@ local function LoadActionKeys()
   Dina:setActionKeys(Player, "right", "continuous", Dina:getGlobalValue("Controller_Right"))
   Dina:setActionKeys(Player, "up", "continuous", Dina:getGlobalValue("Controller_Up"))
   Dina:setActionKeys(Player, "down", "continuous", Dina:getGlobalValue("Controller_Down"))
+  Dina:setActionKeys(Game, "compass", "pressed", Dina:getGlobalValue("Controller_Action"))
   Dina:setActionKeys(Game, "pause", "pressed", Dina:getGlobalValue("Controller_Pause"))
 end
 local function LoadUserInterface()
@@ -80,14 +87,20 @@ local function LoadUserInterface()
 
   local fqx, fqy = FoodQuantity:getPosition()
   local fqw, fqh = FoodQuantity:getDimensions()
-  Compass = Dina("Image", "datas/images/game/compass_UI.png", fqx + fqw, fqy)
-  Compass:setVisible(Dina:getGlobalValue("Game_Compass"))
-  Compass:setZOrder(Compass:getZOrder() + 1)
+  CompassUI = Dina("Image", "datas/images/game/compass_UI.png", fqx + fqw, fqy)
+  local gameCompass = Dina:getGlobalValue("Game_Compass")
+  if gameCompass then
+    CompassUI:setVisible(true)
+  else
+    CompassUI:setVisible(false)
+  end
+  CompassUI:setZOrder(CompassUI:getZOrder() + 1)
 end
 --
 
 
 function Game:load()
+  arrowAngle = -1
   if not Dina:getGlobalValue("Controller") then
     Dina:setGlobalValue("Controller", "Keyboard")
   end
@@ -125,9 +138,38 @@ function Game:pause()
   end
 end
 --
+function Game:compass()
+  local gameCompass = Dina:getGlobalValue("Game_Compass")
+  if gameCompass then
+    showCompass = not showCompass
+    if showCompass then
+      CompassImg = Dina("Image", "datas/images/game/compass_big.png", 0, 0)
+      CompassImg:centerOrigin()
+      CompassImg:setPosition(MIDWIDTH, MIDHEIGHT)
+      CompassImg:setZOrder(CompassImg:getZOrder() + 1)
+
+      ArrowImg = Dina("Image", "datas/images/game/arrow.png", 0, 0)
+      ArrowImg:centerOrigin()
+      ArrowImg:setPosition(MIDWIDTH, MIDHEIGHT)
+      ArrowImg:setZOrder(CompassImg:getZOrder() + 1)
+
+      Dina:resetActionKeys()
+      Dina:setActionKeys(Game, "compass", "pressed", Dina:getGlobalValue("Controller_Action"))
+    else
+      Dina:removeComponent(CompassImg)
+      Dina:removeComponent(ArrowImg)
+      LoadActionKeys()
+    end
+  end
+end
 
 function Game:update(dt)
   if pauseGame then
+    return
+  end
+
+  if showCompass then
+    self:updateCompass(dt)
     return
   end
 
@@ -135,7 +177,6 @@ function Game:update(dt)
     Dina:setState("gameover")
     return
   end
-
 
   local px, py = Player:getPosition()
   local ids = LevelManager:getTileIdsAtCoord(px, py)
@@ -189,17 +230,19 @@ function Game:update(dt)
     if compass.visible then
       if CollidePointRect(px, py, compass.x, compass.y, compass.width, compass.height) then
         Player.compass = true
-        Dina:setGlobalValue("Game_Compass", true)
-        Compass:setVisible(true)
+        Dina:setGlobalValue("Game_Compass", compass)
+        CompassUI:setVisible(true)
         compass.visible = false
       end
     end
   end
-  -- Collision with the Compass
+  -- Collision with the Fountain
   local fountain = LevelManager:getObjectByName("Fountain")
   if fountain then
+    fountain.visible = true
     if CollidePointRect(px, py, fountain.x, fountain.y, fountain.width, fountain.height) then
-      Dina:setState("victory")
+--      Dina:setState("victory")
+      print("Fontaine trouvée")
     end
   end
 
@@ -240,7 +283,6 @@ function Game:update(dt)
   if generate then
     local pw, ph = Player:getDimensions()
     if px < pw*2 or px > lw - pw*2 or py < ph*2 or py > lh - ph*2 then
-
       self:generateIsland()
     end
     local nlw, nlh = LevelManager:getMapDimensions()
@@ -263,8 +305,6 @@ function Game:update(dt)
     Player:setPosition(npx, npy)
     Game:updateCamera()
   end
-  
-  --Player:update(dt)
 end
 --
 function Game:hasExploreIsland()
@@ -291,7 +331,6 @@ function Game:generateIsland()
   LoadActionKeys()
 
   if next(FoodProgressBar) then
-    -- To force the sort of the components
     local zOrder = FoodProgressBar:getZOrder()
     FoodProgressBar:setZOrder(zOrder + 1)
   end
@@ -314,11 +353,54 @@ function Game:updateCamera()
     camera.y = lh - Dina.height
   end
 end
+--
+
+function Game:updateCompass(dt)
+  local px, py = Player:getPosition()
+  local fountain = LevelManager:getObjectByName("Fountain")
+  local angle = ArrowImg:getRotation()
+  if fountain then
+    local ux = 0
+    local uy = 1
+    local pfx = fountain.x - px
+    local pfy = fountain.y - py
+    local norme = (pfx * pfx + pfy * pfy) ^0.5
+    local vx = pfx / norme
+    local vy = pfy / norme
+
+    local prodscal = ux * vx + uy * vy
+    local norme_u = (ux * ux + uy * uy) ^0.5
+    local norme_v = (vx * vx + vy * vy) ^0.5
+
+    local angle = math.acos( prodscal / (norme_u * norme_v) ) * 180 / PI
+    if px < fountain.x then
+      arrowAngle = 180 - angle
+    else
+      arrowAngle = 180 + angle
+    end
+    ArrowImg:setRotation(arrowAngle)
+  else
+    if arrowAngle < 0 then
+      arrowAngle = love.math.random(1,360)
+    end
+    speedArrowMove = love.math.random(80, 120)
+    local diff = arrowAngle - angle
+    if math.abs(diff) <= 2 then
+      arrowAngle = -1
+    elseif diff < 0 then
+      angle = angle - speedArrowMove * dt
+      ArrowImg:setRotation(angle)
+    elseif diff > 0 then
+      angle = angle + speedArrowMove * dt
+      ArrowImg:setRotation(angle)
+    end
+  end
+end
+--
 
 function Game:draw()
   LevelManager:setOffset(camera.x, camera.y)
   Dina:draw(false)
-  --Player:draw()
 end
 
 

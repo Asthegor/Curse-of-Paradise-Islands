@@ -74,6 +74,8 @@ end
 --
 
 function Menu:load()
+  Dina:setGlobalValue("Game_Compass", nil)
+  
   MenuManager = Dina("MenuManager")
   MenuManager:setCtrlSpace(20)
   

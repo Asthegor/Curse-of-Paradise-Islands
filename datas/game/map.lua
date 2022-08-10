@@ -553,7 +553,8 @@ function Map:addCompass()
     rotation = 0,
     gid = 66,
     visible = false,
-    properties = {}
+    properties = {},
+    remainIslands = love.math.random(2, 10)
   }
   table.insert(gameObjLayer.objects, compass)
   local compassDetector = self:getCompassDetector((col - 2) * self.island.tilewidth, (row - 2) * self.island.tileheight)
